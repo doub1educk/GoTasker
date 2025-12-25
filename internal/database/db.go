@@ -28,10 +28,10 @@ func NewDatabase(path string) (*Database, error) {
 
 	query := `
 	CREATE TABLE IF NOT EXISTS tasks(
-	ID INTEGER PRIMARY KEY AUTO_INCREMENT,
-	title TEXT NOT NULL
+	ID INTEGER PRIMARY KEY AUTOINCREMENT,
+	title TEXT NOT NULL,
 	description TEXT,
-	status TEXT NOT NULL DEFAULT 'pending'
+	status TEXT NOT NULL DEFAULT 'pending',
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	completed_TIMESTAMP
 	)
@@ -123,4 +123,11 @@ func (d *Database) GetAllTasks() ([]domain.Task, error) {
 		return nil, fmt.Errorf("cant handle the rows: %w", err)
 	}
 	return tasks, nil
+}
+
+func (d *Database) Close() error {
+	if d.conn != nil {
+		return d.conn.Close()
+	}
+	return nil
 }
