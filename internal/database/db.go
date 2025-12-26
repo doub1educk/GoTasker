@@ -34,7 +34,7 @@ func NewDatabase(path string) (*Database, error) {
 	status TEXT NOT NULL DEFAULT 'pending',
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	completed_TIMESTAMP
-	)
+	);
 	`
 
 	_, err = db.Exec(query)
@@ -47,7 +47,7 @@ func NewDatabase(path string) (*Database, error) {
 func (d *Database) CreateTask(title, description string) (int, error) {
 	query := `
 	INSERT INTO tasks(title,description,status)
-	VALUES(?,?,'pending')
+	VALUES(?,?,'pending');
 	`
 	result, err := d.conn.Exec(query, title, description)
 	if err != nil {
@@ -64,7 +64,7 @@ func (d *Database) CreateTask(title, description string) (int, error) {
 func (d *Database) CreateTaskWithDeadline(title, description string, deadline time.Time) (int, error) {
 	query := `
 	INSERT INTO tasks(title,description,status,deadline)
-	VALUES(?,?,'pending',?)
+	VALUES(?,?,'pending',?);
 	`
 	result, err := d.conn.Exec(query, title, description, deadline)
 	if err != nil {
@@ -82,7 +82,7 @@ func (d *Database) GetAllTasks() ([]domain.Task, error) {
 	query := `
 	SELECT *
 	FROM tasks
-	ORDER BY created_at
+	ORDER BY created_at;
 	`
 	rows, err := d.conn.Query(query)
 	if err != nil {
@@ -128,6 +128,27 @@ func (d *Database) GetAllTasks() ([]domain.Task, error) {
 func (d *Database) Close() error {
 	if d.conn != nil {
 		return d.conn.Close()
+	}
+	return nil
+}
+
+func (d *Database) DeleteTask(id int) error {
+	query := `
+	DELETE FROM tasks
+	WHERE id = $1;
+	`
+
+	result, err := d.conn.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("cant complete a query for delete task: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("cant count affected rows: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("tasks with id: %d not found", id)
 	}
 	return nil
 }
