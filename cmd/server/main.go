@@ -28,7 +28,7 @@ func main() {
 	taskHandler := handler.NewTaskHandler(db, logger)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(http.ResponseWriter, *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./web/static/index.html")
 	})
 

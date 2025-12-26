@@ -33,7 +33,8 @@ func NewDatabase(path string) (*Database, error) {
 	description TEXT,
 	status TEXT NOT NULL DEFAULT 'pending',
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	completed_TIMESTAMP
+	completed_at TIMESTAMP,
+	deadline TIMESTAMP
 	);
 	`
 
@@ -135,7 +136,7 @@ func (d *Database) Close() error {
 func (d *Database) DeleteTask(id int) error {
 	query := `
 	DELETE FROM tasks
-	WHERE id = $1;
+	WHERE id = ?;
 	`
 
 	result, err := d.conn.Exec(query, id)
@@ -157,7 +158,7 @@ func (d *Database) UpdateTask(id int, status string) error {
 	query := `
 	UPDATE tasks
 	SET status = ?,
-	completed_at = CASE WHEN ? = 'done' THEN CURRENT_TIMESTAMP ELSE NULL
+	completed_at = CASE WHEN ? = 'done' THEN CURRENT_TIMESTAMP ELSE NULL END
 	WHERE id = ?
 	`
 	result, err := d.conn.Exec(query, status, status, id)
@@ -174,4 +175,5 @@ func (d *Database) UpdateTask(id int, status string) error {
 		return fmt.Errorf("task not found")
 
 	}
+	return nil
 }

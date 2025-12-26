@@ -110,15 +110,23 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+
+	if err := r.ParseForm(); err != nil {
+		h.logger.Error("failed to parse form", "error", err)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		fmt.Errorf("invalid task id", http.StatusBadRequest)
+		http.Error(w, "invalid task id", http.StatusBadRequest)
+		return
 	}
 	status := r.FormValue("status")
 
 	if status != "pending" && status != "done" {
-		fmt.Errorf("Use valid status")
+		http.Error(w, "Use valid status", http.StatusBadRequest)
 		return
 	}
 	if err := h.database.UpdateTask(id, status); err != nil {
