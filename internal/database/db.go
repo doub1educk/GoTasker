@@ -152,3 +152,26 @@ func (d *Database) DeleteTask(id int) error {
 	}
 	return nil
 }
+
+func (d *Database) UpdateTask(id int, status string) error {
+	query := `
+	UPDATE tasks
+	SET status = ?,
+	completed_at = CASE WHEN ? = 'done' THEN CURRENT_TIMESTAMP ELSE NULL
+	WHERE id = ?
+	`
+	result, err := d.conn.Exec(query, status, status, id)
+	if err != nil {
+		return fmt.Errorf("failed to update task:%w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("cant get affected rows: %w", err)
+
+	}
+
+	if rows == 0 {
+		return fmt.Errorf("task not found")
+
+	}
+}

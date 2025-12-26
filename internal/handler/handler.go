@@ -89,22 +89,43 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("task create", "id", id, "title", title)
 }
 
-func (h *TaskHandler) DeleteTask(id int, w http.ResponseWriter, r *http.Request) {
+func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	ifStr := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(ifStr)
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "id not allowed", http.StatusBadRequest)
 		return
 	}
 	if err := h.database.DeleteTask(id); err != nil {
-		h.logger.Error("failed to delete task", id, "error", err)
+		h.logger.Error("failed to delete task", "error", err)
 		http.Error(w, "error", http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "task was deleted", id)
+}
+
+func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		fmt.Errorf("invalid task id", http.StatusBadRequest)
+	}
+	status := r.FormValue("status")
+
+	if status != "pending" && status != "done" {
+		fmt.Errorf("Use valid status")
+		return
+	}
+	if err := h.database.UpdateTask(id, status); err != nil {
+		h.logger.Error("failed to update task:", id, "error", err)
+		http.Error(w, "server err", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Task %d updated", id)
 }
